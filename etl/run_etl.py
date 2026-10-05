@@ -72,7 +72,7 @@ def ejecutar_etl():
         sql_transformacion = """
             INSERT INTO lectura_demo (
                 dispositivo_id,
-                timestamp,
+                timestamps,
                 p_ac,
                 v_ac,
                 irradiancia,
@@ -82,7 +82,7 @@ def ejecutar_etl():
             )
             SELECT
                 (payload->>'dispositivo_id')::INT,
-                (payload->>'timestamp')::TIMESTAMPTZ,
+                (payload->>'timestamps')::TIMESTAMPTZ,
                 (payload->>'p_ac')::NUMERIC,
                 (payload->>'v_ac')::NUMERIC,
                 (payload->>'irradiancia')::NUMERIC,
@@ -90,7 +90,7 @@ def ejecutar_etl():
                 payload->>'alarma',
                 COALESCE((payload->>'ingresado_en')::TIMESTAMPTZ, NOW())
             FROM stg_lectura_raw
-            ON CONFLICT (dispositivo_id, timestamp)
+            ON CONFLICT (dispositivo_id, timestamps)
             DO NOTHING;
         """
 

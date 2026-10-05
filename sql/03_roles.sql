@@ -1,4 +1,4 @@
-```sql
+
 -- 1. Crear el rol de solo lectura con contraseña
 CREATE ROLE solar_lector
 WITH LOGIN PASSWORD 'lector123';
@@ -20,4 +20,4 @@ TO solar_lector;
 REVOKE INSERT, UPDATE, DELETE
 ON TABLE lectura_demo
 FROM solar_lector;
-```
+
