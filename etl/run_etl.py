@@ -63,47 +63,28 @@ def ejecutar_etl():
             "en 'stg_lectura_raw'."
         )
 
-        # --- PASO C: TRANSFORMACIÓN Y CARGA IDEMPOTENTE (lectura_demo) ---
+# --- PASO C: TRANSFORMACIÓN FILTRADA E IDEMPOTENTE ---
         print(
-            "🔄 [3/4] Transformando datos JSONB e insertando "
-            "en 'lectura_demo'..."
+            "🔄 [3/4] Transformando datos e insertando en "
+            "'lectura_demo' (Idempotente)..."
         )
 
-        sql_transformacion = """
-            INSERT INTO lectura_demo (
-                dispositivo_id,
-                timestamps,
-                p_ac,
-                v_ac,
-                irradiancia,
-                temp_modulo,
-                alarma,
-                ingresado_en
-            )
-            SELECT
-                (payload->>'dispositivo_id')::INT,
-                (payload->>'timestamps')::TIMESTAMPTZ,
-                (payload->>'p_ac')::NUMERIC,
-                (payload->>'v_ac')::NUMERIC,
-                (payload->>'irradiancia')::NUMERIC,
-                (payload->>'temp_modulo')::NUMERIC,
-                payload->>'alarma',
-                COALESCE((payload->>'ingresado_en')::TIMESTAMPTZ, NOW())
-            FROM stg_lectura_raw
-            ON CONFLICT (dispositivo_id, timestamps)
-            DO NOTHING;
-        """
+        # Leer y ejecutar el script SQL desde sql/02_carga.sql
+        with open("sql/02_carga.sql", "r", encoding="utf-8") as f:
+            sql_transformacion = f.read()
 
         cur.execute(sql_transformacion)
 
-        filas_cargadas = cur.rowcount  # Conteo de filas realmente insertadas
+        filas_cargadas = cur.rowcount
 
         conn.commit()
 
         print(
-            f" ↳ Se cargaron {filas_cargadas} filas transformadas "
-            "en 'lectura_demo'."
+            f" ↳ Filas nuevas cargadas en 'lectura_demo': "
+            f"{filas_cargadas}"
         )
+
+
 
         # --- PASO D: REGISTRAR FIN EXITOSO EN BITÁCORA ---
         fin = datetime.now()
